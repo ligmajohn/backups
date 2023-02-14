@@ -1,6 +1,3 @@
-# ESP Lib
-ESP library utilizing Synapse X's Drawing library.
-
 # Basic Usage
 * `ESP:Toggle(<bool> enabled)` - enables/disables the ESP, it boxes players by default so you don't have to set up a PlayerAdded of your own
 * `ESP:Add(<Instance> model/part, <table> options)` - add an object to the ESP manually, `options` can be empty but must be a table
@@ -184,3 +181,9 @@ table.insert(ESP.Objects, CircleTbl)
 ```
 
 The reason it's going to update it even if ESP is toggled off is because in the `RenderStepped` loop it uses `pairs` when ESP is enabled, and `ipairs` when it's disabled. In other words, it only loops through the numerical indexes when ESP is disabled, and regular objects use dictionary keys, so it will only iterate values inserted with `table.insert` or such.
+
+# Optional Auto Setup
+```lua
+local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/ligmajohn/backups/main/esp/main.lua"))()
+ESP:DefaultSetup()
+```
