@@ -4,93 +4,115 @@ local format, floor, wrap, newCFrame = string.format, math.floor, coroutine.wrap
 local Vector2, Vector3, newDrawing, fromRGB = Vector2.new, Vector3.new, Drawing.new, Color3.fromRGB
 
 local ESP = {
-    Enabled = false,
-    Distance = true,
-    Boxes = true,
-    BoxShift = newCFrame(0, -1.5, 0),
-    BoxSize = Vector3(4, 6, 0),
-    Color = fromRGB(255, 255, 255),
-    FaceCamera = false,
-    Names = true,
-    TeamColor = true,
-    Thickness = 2,
-    AttachShift = 1,
-    TeamMates = true,
-    Players = true,
-    Health = false,
-    Presets = {
-        Green = fromRGB(0, 255, 154),
-        Red = fromRGB(255, 0, 128),
-        Orange = fromRGB(255, 162, 0),
-        Blue = fromRGB(0, 145, 255),
-        White = fromRGB(255, 255, 255)
-    },
-    IgnoreHumanoids = false,
-    Objects = setmetatable({}, {__mode = "kv"}),
-    Debug = false,
-    Overrides = {}
+	Enabled = false,
+	Distance = true,
+	Boxes = true,
+	BoxShift = newCFrame(0, -1.5, 0),
+	BoxSize = Vector3(4, 6, 0),
+	Color = fromRGB(255, 255, 255),
+	FaceCamera = false,
+	Names = true,
+	TeamColor = true,
+	Thickness = 2,
+	AttachShift = 1,
+	TeamMates = true,
+	Players = true,
+	Health = false,
+	Presets = {
+		Green = fromRGB(0, 255, 154),
+		Red = fromRGB(255, 0, 128),
+		Orange = fromRGB(255, 162, 0),
+		Blue = fromRGB(0, 145, 255),
+		White = fromRGB(255, 255, 255),
+		Black = fromRGB(0, 0, 0),
+		Pink = fromRGB(255, 0, 255),
+		Gray = fromRGB(160, 160, 160),
+		Yellow = fromRGB(255, 255, 102),
+		Purple = fromRGB(102, 0, 204)
+	},
+	IgnoreHumanoids = false,
+	Objects = setmetatable({}, {__mode = "kv"}),
+	Debug = false,
+	Overrides = {}
 }
 
-local cloneref = cloneref or function(...) return ... end
+local clonerefs = cloneref or function(...) return ... end
 local cam = workspace.CurrentCamera
-local plrs = cloneref(game:GetService("Players"))
-local runserv = cloneref(game:GetService("RunService"))
+local plrs = clonerefs(game:GetService("Players"))
+local runserv = clonerefs(game:GetService("RunService"))
+local CoreGui = clonerefs(game:GetService("CoreGui"))
 local plr = plrs.LocalPlayer
 local WorldToViewportPoint = cam.WorldToViewportPoint
 
-local function Draw(obj, props)
-	local new = newDrawing(obj)
-	props = props or {}
-	for i, v in pairs(props) do
-		new[i] = v
+local Draw = function(object, properties)
+	object = newDrawing(object)
+	for property, value in pairs(properties or {}) do
+		object[property] = value
 	end
-	return new
+	return object
 end
 
-function ESP:GetTeam(p)
-	local ov = self.Overrides.GetTeam
-	if ov then
-		return ov(p)
-	end
-	return p and p.Team
-end
-
-function ESP:IsTeamMate(p)
-    local ov = self.Overrides.IsTeamMate
-	if ov then
-		return ov(p)
+function ESP:GetTeam(player)
+    local override = self.Overrides.GetTeam
+    if override then
+        return override(player)
     end
-    return self:GetTeam(p) == self:GetTeam(plr)
+    return player and player.Team
+end
+
+function ESP:IsTeamMate(player)
+    local override = self.Overrides.IsTeamMate
+    if override then
+        return override(player)
+    end
+    return self:GetTeam(player) == self:GetTeam(plr)
 end
 
 function ESP:GetColor(obj)
-	local ov = self.Overrides.GetColor
-	if ov then
-		return ov(obj)
+    local override = self.Overrides.GetColor
+    if override then
+        return override(obj)
     end
-    local p = self:GetPlrFromChar(obj)
-    return p and self.TeamColor and p.Team and p.Team.TeamColor.Color or self.Color
+    local player = self:GetPlrFromChar(obj)
+    return player and self.TeamColor and player.Team and player.Team.TeamColor.Color or self.Color
 end
 
-function ESP:GetPlrFromChar(char)
-	local ov = self.Overrides.GetPlrFromChar
-	if ov then
-		return ov(char)
-	end
-	return plrs:GetPlayerFromCharacter(char)
+function ESP:GetPlrFromChar(character)
+    local override = self.Overrides.GetPlrFromChar
+    if override then
+        return override(character)
+    end
+    return plrs:GetPlayerFromCharacter(character)
 end
 
-function ESP:GetHealth(char)
-	local ov = self.Overrides.GetHealth
-	if ov then
-		return ov(char)
+function ESP:GetHealth(character)
+    local override = self.Overrides.GetHealth
+    if override then
+        return override(character)
+    end
+    local player = self:GetPlrFromChar(character)
+    local humanoid = player and player.Character and (player.Character:FindFirstChildWhichIsA("Humanoid") or player.Character:FindFirstChild("Humanoid"))
+    if humanoid then
+        return {Health = humanoid.Health, MaxHealth = humanoid.MaxHealth}
+    end
+    return {Health = 0, MaxHealth = 0}
+end
+
+local GetLongUsername = function(player)
+	if player.DisplayName ~= player.Name then
+		return format("%s (%s)", player.Name, player.DisplayName)
+	else
+		return player.Name
 	end
-	local player = self:GetPlrFromChar(char)
-	local humanoid = player and player.Character and (player.Character:FindFirstChildWhichIsA("Humanoid") or player.Character:FindFirstChild("Humanoid"))
-	if humanoid then
-		return {Health = humanoid.Health, MaxHealth = humanoid.MaxHealth}
-	end
-	return {Health = 0, MaxHealth = 0}
+end
+
+function ESP:GetName(character)
+    local override = self.Overrides.GetName
+    if override then
+        return override(character)
+    end
+    local player = self:GetPlrFromChar(character)
+    return (player and GetLongUsername(player)) or "Invalid Name"
 end
 
 function ESP:Toggle(bool)
@@ -238,39 +260,40 @@ function boxBase:Update()
 
     if ESP.Names then
         local TagPos, Vis5 = WorldToViewportPoint(cam, locs.TagPos.p)
-
         if Vis5 then
             self.Components.Name.Visible = true
             self.Components.Name.Position = Vector2(TagPos.X, TagPos.Y)
-            if ESP.Health and self.Player and self.Player.Character then
-                local Humanoid = ESP:GetHealth(self.Player.Character)
-                self.Components.Name.Text = self.Name .. format(" [%s/%s]", floor(Humanoid.Health), floor(Humanoid.MaxHealth))
+            local Humanoid, NewName = ESP:GetHealth(self.Player.Character), ESP:GetName(self.Player.Character)
+            if ESP.Health then
+                self.Components.Name.Text = NewName .. format(" [%s/%s]", floor(Humanoid.Health), floor(Humanoid.MaxHealth))
             else
-                self.Components.Name.Text = self.Name
+                self.Components.Name.Text = NewName
             end
             self.Components.Name.Color = color
-
-            if ESP.Distance then
-                self.Components.Distance.Visible = true
-                self.Components.Distance.Position = Vector2(TagPos.X, TagPos.Y + 14)
-                self.Components.Distance.Text = floor((cam.CFrame.p - cf.p).magnitude) .. "m away"
-                self.Components.Distance.Color = color
-            else
-                self.Components.Distance.Visible = false
-            end
         else
             self.Components.Name.Visible = false
-            self.Components.Distance.Visible = false
         end
     else
         self.Components.Name.Visible = false
+    end
+
+    if ESP.Distance then
+        local TagPos, Vis6 = WorldToViewportPoint(cam, locs.TagPos.p)
+        if Vis6 then
+            self.Components.Distance.Visible = true
+            self.Components.Distance.Position = Vector2(TagPos.X, TagPos.Y + 14)
+            self.Components.Distance.Text = floor((cam.CFrame.p - cf.p).magnitude) .. "m away"
+            self.Components.Distance.Color = color
+        else
+            self.Components.Distance.Visible = false
+        end
+    else
         self.Components.Distance.Visible = false
     end
 
     if ESP.Tracers then
-        local TorsoPos, Vis6 = WorldToViewportPoint(cam, locs.Torso.p)
-
-        if Vis6 then
+        local TorsoPos, Vis7 = WorldToViewportPoint(cam, locs.Torso.p)
+        if Vis7 then
             self.Components.Tracer.Visible = true
             self.Components.Tracer.From = Vector2(TorsoPos.X, TorsoPos.Y)
             self.Components.Tracer.To = Vector2(cam.ViewportSize.X/2,cam.ViewportSize.Y/ESP.AttachShift)
@@ -418,7 +441,6 @@ function ESP:DefaultSetup(color)
     ESP.Color = ESP.Presets[tostring(color)] or color or ESP.Presets.White
 end
 
-local CoreGui = cloneref(game:GetService("CoreGui"))
 local chamfolder = nil
 local chamsEnabled = false
 function ESP:Chams(enabled)
@@ -437,13 +459,16 @@ function ESP:Chams(enabled)
                         local char = v.Character
                         if chamfolder ~= nil and char ~= nil then
                             local hitbox = chamfolder:FindFirstChild(v.Name) or Instance.new("Highlight")
+                            local allow = true
+                            if not ESP.TeamMates and ESP:IsTeamMate(v) then allow = false end
                             hitbox.Name = v.Name
                             hitbox.Parent = chamfolder
                             hitbox.Adornee = char
-                            hitbox.OutlineColor = v.TeamColor.Color
+                            hitbox.OutlineColor = (ESP.TeamColor and v.TeamColor.Color) or ESP.Color
                             hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                            hitbox.FillColor = v.TeamColor.Color
+                            hitbox.FillColor = (ESP.TeamColor and v.TeamColor.Color) or ESP.Color
                             hitbox.FillTransparency = 0.5
+                            hitbox.Enabled = allow
                         end
                     end
                 end
