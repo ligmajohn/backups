@@ -752,7 +752,7 @@ end
         -- SolarisLib:SaveCfg(name or CurrentLoadedCfg)
         for i, _ in pairs(SolarisLib.Flags) do
             if SolarisLib.Flags[i] then
-                SolarisLib.Flags[i]:Set(false)
+                if SolarisLib.Flags[i].Set then spawn(function() SolarisLib.Flags[i]:Set(false) end) end
             end
         end
         Solaris:Remove()
