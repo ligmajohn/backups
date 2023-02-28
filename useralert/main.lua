@@ -1,7 +1,7 @@
 while not game:IsLoaded() do
   wait()
 end
-local AkaliNotif = loadstring(game:HttpGet("https://raw.githubusercontent.com/ligmajohn/backups/main/useralert/lib.lua"))();
+local AkaliNotif = loadstring(game:HttpGet("https://raw.githubusercontent.com/ligmajohn/backups/main/useralert/library.lua"))();
 local Notify = AkaliNotif.Notify;
 local playerlist = game:GetService("Players"):GetChildren()
 
