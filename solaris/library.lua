@@ -735,7 +735,7 @@ end
 	if not success then return false, 'decode error' end
         table.foreach(content, function(a, b)
             if SolarisLib.Flags[a] then
-                spawn(function() SolarisLib.Flags[a]:Set(b) end)
+		if SolarisLib.Flags[a].Set then spawn(function() SolarisLib.Flags[a]:Set(b) end) else SolarisLib.Flags[a].Value = b end
             end
         end)
     end
@@ -1208,6 +1208,8 @@ end
                         end)
                     end
                 end)
+
+                SolarisLib.Flags[flag] = ColorPicker
 
                 return ColorPicker
             end
