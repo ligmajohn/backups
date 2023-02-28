@@ -187,3 +187,8 @@ The reason it's going to update it even if ESP is toggled off is because in the 
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/ligmajohn/backups/main/esp/main.lua"))()
 ESP:DefaultSetup()
 ```
+
+# Completely Disable
+```lua
+ESP:Kill()
+```
