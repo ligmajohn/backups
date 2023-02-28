@@ -1,3 +1,4 @@
+```lua
 local SolarisLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ligmajohn/backups/main/solaris/library.lua"))()
 
 --[[SolarisLib:New({
@@ -88,3 +89,4 @@ local label = sec:Label("Label")
 label:Set(text <string>)
 ]]
 local tab2 = win:Tab("Tab 2")
+```
